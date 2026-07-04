@@ -1,0 +1,28 @@
+*.iml
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# Nothing Glyph SDK aar (EULA により再配布禁止。絶対にコミットしない)
+app/libs/*.aar
+
+# 署名情報 (Phase 5 の禁止事項)
+*.jks
+*.keystore
+keystore.properties
+
+# リリース成果物・IDE 一式 (個人パスが入る可能性があるので丸ごと除外)
+app/release/
+.idea/
+.kotlin/

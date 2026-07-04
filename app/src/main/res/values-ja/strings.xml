@@ -1,0 +1,11 @@
+<resources>
+    <!-- 日本語ロケール用。app_name / toy_name は固有名詞なので上書きしない -->
+    <string name="toy_summary">掌の上の花火大会</string>
+
+    <string name="main_title">Glyph Hanabi 🎆</string>
+    <string name="main_tagline">Glyph Matrix で打ち上げる日本の花火</string>
+    <string name="main_howto_title">使い方</string>
+    <string name="main_howto_body">1. 設定 → Glyph Interface → Glyph Toys を開く\n2. 「Glyph Hanabi」を有効にする\n3. 電源ボタンを押す (またはスマホを伏せる) — 画面が消えた瞬間に花火大会が始まります\n\n以上です。設定項目はないので、この画面は閉じて大丈夫です。</string>
+    <string name="main_notes_title">ちょっとした補足</string>
+    <string name="main_notes_body">• 1 回のショーは約 1 分。ナイアガラで締めくくります\n• 画面を点けると終演。次に画面が消えたときにまた上がります\n• 充電中はあえて点灯しません — 花火は夜のもの、充電器のものではないので\n• 本物の花火と同じく、暗い場所での観覧がおすすめです</string>
+</resources>

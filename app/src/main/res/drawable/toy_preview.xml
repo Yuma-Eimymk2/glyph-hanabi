@@ -1,0 +1,38 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="512dp"
+    android:height="512dp"
+    android:viewportWidth="512"
+    android:viewportHeight="512">
+
+    <!-- 背景: 黒い円 (Glyph Life の toy_preview と同じ体裁) -->
+    <path
+        android:pathData="M256,256m-256,0a256,256 0,1 1,512 0a256,256 0,1 1,-512 0"
+        android:fillColor="#000000" />
+
+    <!-- 割物花火: 中心の芯 + 8 方向に開いた星 (内輪は大きく、外輪は小さく) -->
+
+    <!-- 芯 -->
+    <path
+        android:pathData="M256,256m-14,0a14,14 0,1 1,28 0a14,14 0,1 1,-28 0"
+        android:fillColor="#FFFFFF" />
+
+    <!-- 内輪 (半径 90) -->
+    <path android:pathData="M346,256m-16,0a16,16 0,1 1,32 0a16,16 0,1 1,-32 0" android:fillColor="#FFFFFF" />
+    <path android:pathData="M320,320m-16,0a16,16 0,1 1,32 0a16,16 0,1 1,-32 0" android:fillColor="#FFFFFF" />
+    <path android:pathData="M256,346m-16,0a16,16 0,1 1,32 0a16,16 0,1 1,-32 0" android:fillColor="#FFFFFF" />
+    <path android:pathData="M192,320m-16,0a16,16 0,1 1,32 0a16,16 0,1 1,-32 0" android:fillColor="#FFFFFF" />
+    <path android:pathData="M166,256m-16,0a16,16 0,1 1,32 0a16,16 0,1 1,-32 0" android:fillColor="#FFFFFF" />
+    <path android:pathData="M192,192m-16,0a16,16 0,1 1,32 0a16,16 0,1 1,-32 0" android:fillColor="#FFFFFF" />
+    <path android:pathData="M256,166m-16,0a16,16 0,1 1,32 0a16,16 0,1 1,-32 0" android:fillColor="#FFFFFF" />
+    <path android:pathData="M320,192m-16,0a16,16 0,1 1,32 0a16,16 0,1 1,-32 0" android:fillColor="#FFFFFF" />
+
+    <!-- 外輪 (半径 160、消え口に向かう小さな星) -->
+    <path android:pathData="M416,256m-10,0a10,10 0,1 1,20 0a10,10 0,1 1,-20 0" android:fillColor="#FFFFFF" />
+    <path android:pathData="M369,369m-10,0a10,10 0,1 1,20 0a10,10 0,1 1,-20 0" android:fillColor="#FFFFFF" />
+    <path android:pathData="M256,416m-10,0a10,10 0,1 1,20 0a10,10 0,1 1,-20 0" android:fillColor="#FFFFFF" />
+    <path android:pathData="M143,369m-10,0a10,10 0,1 1,20 0a10,10 0,1 1,-20 0" android:fillColor="#FFFFFF" />
+    <path android:pathData="M96,256m-10,0a10,10 0,1 1,20 0a10,10 0,1 1,-20 0" android:fillColor="#FFFFFF" />
+    <path android:pathData="M143,143m-10,0a10,10 0,1 1,20 0a10,10 0,1 1,-20 0" android:fillColor="#FFFFFF" />
+    <path android:pathData="M256,96m-10,0a10,10 0,1 1,20 0a10,10 0,1 1,-20 0" android:fillColor="#FFFFFF" />
+    <path android:pathData="M369,143m-10,0a10,10 0,1 1,20 0a10,10 0,1 1,-20 0" android:fillColor="#FFFFFF" />
+</vector>
