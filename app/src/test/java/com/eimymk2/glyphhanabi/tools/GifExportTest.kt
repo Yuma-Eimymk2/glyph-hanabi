@@ -57,6 +57,34 @@ class GifExportTest {
         }
     }
 
+    /**
+     * Playground プレビュー用: 盤面中心 (6,6) で直接開花させ、全フレームを 512×512 PNG に。
+     * ショー本編と違い打ち上げ位置の乱数ずれがないので、看板向きの対称な開花が撮れる
+     */
+    @Test
+    fun `posed preview export (only when HANABI_POSE_DIR env is set)`() {
+        val dir = System.getenv("HANABI_POSE_DIR")
+        assumeTrue("HANABI_POSE_DIR 未設定のためスキップ", !dir.isNullOrBlank())
+        val seed = System.getenv("HANABI_GIF_SEED")?.toIntOrNull() ?: 1
+
+        for (type in listOf(com.eimymk2.glyphhanabi.engine.ShellType.KIKU,
+                            com.eimymk2.glyphhanabi.engine.ShellType.BOTAN,
+                            com.eimymk2.glyphhanabi.engine.ShellType.KAMURO)) {
+            val engine = HanabiEngine(Random(seed))
+            val compositor = FrameCompositor(gamma = 0.6f, maxLevel = 255)
+            engine.burst(HanabiEngine.CENTER, HanabiEngine.CENTER, type)
+            var frame = 0
+            while (frame < 60 && !engine.isIdle) {
+                engine.update()
+                compositor.compose(engine)
+                ImageIO.write(
+                    renderFrame(compositor.snapshot(), imgPx = 512, cellPx = 36, gapPx = 6, padPx = 22),
+                    "png", File(File(dir!!).apply { mkdirs() }, "%s%02d.png".format(type, frame)))
+                frame++
+            }
+        }
+    }
+
     @Test
     fun `demo GIF export (only when HANABI_GIF env is set)`() {
         val outPath = System.getenv("HANABI_GIF")
@@ -76,6 +104,9 @@ class GifExportTest {
             // 目視チェック用: HANABI_GIF_PNG_DIR を設定すると 25 フレーム (2 秒) ごとに PNG も保存
             val pngDir = System.getenv("HANABI_GIF_PNG_DIR")?.takeIf { it.isNotBlank() }
                 ?.let { File(it).apply { mkdirs() } }
+            // Playground プレビュー選び用: 全フレームを 512×512 PNG で保存
+            val previewDir = System.getenv("HANABI_PREVIEW_DIR")?.takeIf { it.isNotBlank() }
+                ?.let { File(it).apply { mkdirs() } }
 
             var steps = 0
             // 終演 + 全粒消滅 + 残像が完全に消えるまで回す
@@ -88,6 +119,12 @@ class GifExportTest {
                 emit(frame)
                 if (pngDir != null && steps % 25 == 0) {
                     ImageIO.write(frame, "png", File(pngDir, "frame%04d.png".format(steps)))
+                }
+                if (previewDir != null) {
+                    // 512 = 余白 22 + セル 36×13 + 余白 22。すき間は GIF と同比率の 6px
+                    ImageIO.write(
+                        renderFrame(levels, imgPx = 512, cellPx = 36, gapPx = 6, padPx = 22),
+                        "png", File(previewDir, "preview%04d.png".format(steps)))
                 }
                 steps++
                 if (director.isFinished && engine.isIdle && levels.all { it == 0 }) break
@@ -106,17 +143,22 @@ class GifExportTest {
 
     /**
      * 13×13 明度フレーム (0-255) を画像にする。
-     * 実機の Glyph Matrix に合わせて、セルは四角形・セル間のすき間は狭く描く
+     * 実機の Glyph Matrix に合わせて、セルは四角形・セル間のすき間は狭く描く。
+     * サイズはパラメータ化してあり、GIF 用 (374px) と Playground プレビュー用 (512px) で共用
      */
-    private fun renderFrame(levels: IntArray): BufferedImage {
-        val img = BufferedImage(IMG, IMG, BufferedImage.TYPE_INT_RGB)
+    private fun renderFrame(
+        levels: IntArray,
+        imgPx: Int = IMG, cellPx: Int = CELL, gapPx: Int = GAP,
+        padPx: Int = (IMG - GRID * CELL) / 2,
+    ): BufferedImage {
+        val img = BufferedImage(imgPx, imgPx, BufferedImage.TYPE_INT_RGB)
         val g = img.createGraphics()
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
         g.color = Color.BLACK
-        g.fillRect(0, 0, IMG, IMG)
+        g.fillRect(0, 0, imgPx, imgPx)
 
-        val half = (CELL - GAP) / 2  // 四角セルの半辺 (すき間 GAP px を空ける)
-        forEachLed(levels) { cx, cy, v ->
+        val half = (cellPx - gapPx) / 2  // 四角セルの半辺 (すき間 gapPx を空ける)
+        forEachLed(levels, cellPx, padPx) { cx, cy, v ->
             // 消灯セルもうっすら見せて「盤面」の存在を伝える
             g.color = if (v > 0) Color(v, v, v) else Color(15, 15, 15)
             g.fillRect(cx - half, cy - half, half * 2, half * 2)
@@ -126,14 +168,17 @@ class GifExportTest {
     }
 
     /** 円形マスク内 (実 LED) のセルだけを列挙して中心座標と明度を渡す */
-    private inline fun forEachLed(levels: IntArray, draw: (cx: Int, cy: Int, v: Int) -> Unit) {
+    private inline fun forEachLed(
+        levels: IntArray, cellPx: Int, padPx: Int,
+        draw: (cx: Int, cy: Int, v: Int) -> Unit,
+    ) {
         val center = HanabiEngine.CENTER.toInt()
         for (r in 0 until GRID) {
             for (c in 0 until GRID) {
                 val dr = r - center
                 val dc = c - center
                 if (dr * dr + dc * dc > HanabiEngine.MASK_R2) continue
-                draw(PAD + c * CELL + CELL / 2, PAD + r * CELL + CELL / 2,
+                draw(padPx + c * cellPx + cellPx / 2, padPx + r * cellPx + cellPx / 2,
                     levels[r * GRID + c].coerceIn(0, 255))
             }
         }
