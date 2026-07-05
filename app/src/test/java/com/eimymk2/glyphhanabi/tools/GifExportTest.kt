@@ -85,6 +85,94 @@ class GifExportTest {
         }
     }
 
+    /**
+     * Playground プレビュー用 Lottie アニメ (JSON) の書き出し。
+     * 仕様: 512×512、30fps、約 5 秒、1MB 未満。
+     *
+     * ショー冒頭の約 5 秒 (seed は HANABI_GIF_SEED) をエンジンで走らせ、
+     * セル (137 個) ごとに「不透明度のホールドキーフレーム」として焼き込む。
+     * 実機も 80ms 刻みのステップ更新なので、ホールド (補間なし) が実物に一番忠実。
+     * エンジン 1 フレーム (80ms) = Lottie 2.4 フレーム (30fps)。
+     */
+    @Test
+    fun `lottie preview export (only when HANABI_LOTTIE env is set)`() {
+        val outPath = System.getenv("HANABI_LOTTIE")
+        assumeTrue("HANABI_LOTTIE 未設定のためスキップ", !outPath.isNullOrBlank())
+        val seed = System.getenv("HANABI_GIF_SEED")?.toIntOrNull() ?: 1
+
+        val engine = HanabiEngine(Random(seed))
+        val director = ShowDirector(engine, Random(seed + 1000))
+        val compositor = FrameCompositor(gamma = 0.6f, maxLevel = 255)
+
+        // エンジン 63 フレーム = 5.04 秒分の明度をセルごとに記録
+        val engineFrames = 63
+        val series = Array(GRID * GRID) { IntArray(engineFrames) }
+        repeat(engineFrames) { f ->
+            director.update()
+            engine.update()
+            compositor.compose(engine)
+            val levels = compositor.snapshot()
+            for (i in levels.indices) series[i][f] = levels[i]
+        }
+
+        val totalFrames = 150  // 5 秒 × 30fps
+        val dimPct = 6         // 消灯セルの明度 (GIF の #0f0f0f 相当)
+
+        // セルごとの Lottie レイヤーを組み立てる (円形マスク内のみ = 実 LED 137 個)
+        val center = HanabiEngine.CENTER.toInt()
+        val layers = StringBuilder()
+        var ind = 1
+        for (r in 0 until GRID) {
+            for (c in 0 until GRID) {
+                val dr = r - center
+                val dc = c - center
+                if (dr * dr + dc * dc > HanabiEngine.MASK_R2) continue
+                val cx = 22 + c * 36 + 18   // プレビュー PNG と同じ配置 (pad22, cell36)
+                val cy = 22 + r * 36 + 18
+
+                // 明度 (0-255) → 不透明度 (%)。0 のときは消灯セルの dim 表示
+                val pct = series[r * GRID + c].map { v ->
+                    maxOf(dimPct, Math.round(v * 100f / 255f)) }
+                val opacity = if (pct.all { it == pct[0] }) {
+                    """{"a":0,"k":${pct[0]}}"""
+                } else {
+                    // 値が変わった瞬間だけホールドキーフレームを打つ
+                    val kf = StringBuilder("""{"t":0,"s":[${pct[0]}],"h":1}""")
+                    for (f in 1 until engineFrames) {
+                        if (pct[f] != pct[f - 1]) {
+                            kf.append(""",{"t":${Math.round(f * 2.4f)},"s":[${pct[f]}],"h":1}""")
+                        }
+                    }
+                    """{"a":1,"k":[$kf]}"""
+                }
+
+                if (ind > 1) layers.append(",")
+                layers.append("""{"ddd":0,"ty":4,"ind":$ind,"ip":0,"op":$totalFrames,"st":0,""" +
+                    """"ks":{"o":$opacity,"r":{"a":0,"k":0},"p":{"a":0,"k":[$cx,$cy,0]},""" +
+                    """"a":{"a":0,"k":[0,0,0]},"s":{"a":0,"k":[100,100,100]}},""" +
+                    """"shapes":[{"ty":"gr","it":[""" +
+                    """{"ty":"rc","d":1,"s":{"a":0,"k":[30,30]},"p":{"a":0,"k":[0,0]},"r":{"a":0,"k":2}},""" +
+                    """{"ty":"fl","c":{"a":0,"k":[1,1,1,1]},"o":{"a":0,"k":100},"r":1},""" +
+                    """{"ty":"tr","p":{"a":0,"k":[0,0]},"a":{"a":0,"k":[0,0]},""" +
+                    """"s":{"a":0,"k":[100,100]},"r":{"a":0,"k":0},"o":{"a":0,"k":100}}]}]}""")
+                ind++
+            }
+        }
+        // 黒背景 (レイヤー配列の末尾 = 最背面)
+        layers.append(""",{"ddd":0,"ty":1,"ind":$ind,"ip":0,"op":$totalFrames,"st":0,""" +
+            """"ks":{"o":{"a":0,"k":100},"r":{"a":0,"k":0},"p":{"a":0,"k":[256,256,0]},""" +
+            """"a":{"a":0,"k":[256,256,0]},"s":{"a":0,"k":[100,100,100]}},""" +
+            """"sw":512,"sh":512,"sc":"#000000"}""")
+
+        val json = """{"v":"5.7.4","fr":30,"ip":0,"op":$totalFrames,"w":512,"h":512,""" +
+            """"nm":"Glyph Hanabi","ddd":0,"assets":[],"layers":[$layers]}"""
+        File(outPath!!).apply { parentFile?.mkdirs() }.writeText(json)
+
+        println("=== Lottie export done ===")
+        println("seed=$seed engineFrames=$engineFrames -> ${totalFrames / 30f}s @30fps")
+        println("size=${File(outPath).length()} bytes -> $outPath")
+    }
+
     @Test
     fun `demo GIF export (only when HANABI_GIF env is set)`() {
         val outPath = System.getenv("HANABI_GIF")
