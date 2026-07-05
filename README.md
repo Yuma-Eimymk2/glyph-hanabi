@@ -102,11 +102,10 @@ Nothing の再配布条件により含まれていません。自分でビルド
 
 The release APK has been scanned by multiple security services:
 
-<!-- TODO(release): リリース APK 生成後にスキャン URL を差し替えること -->
-- **VirusTotal**: (link will be added with the v0.1.0 release)
-- **Koodous**: (link will be added with the v0.1.0 release)
+- **VirusTotal** (0 detections): https://www.virustotal.com/gui/file/0c023e9fb42c93881cd85d218bb20d6deba38f9a3d6f8c03992209df8325bc74
+- **Koodous**: https://koodous.com/apks/0c023e9fb42c93881cd85d218bb20d6deba38f9a3d6f8c03992209df8325bc74/general-information
 
-リリース版 APK は複数のセキュリティサービスでスキャン済みです (v0.1.0 リリース時にリンク追加)。
+リリース版 APK は複数のセキュリティサービスでスキャン済みです。
 
 ## License
 
