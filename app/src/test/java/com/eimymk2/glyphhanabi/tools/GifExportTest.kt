@@ -78,7 +78,8 @@ class GifExportTest {
                 engine.update()
                 compositor.compose(engine)
                 ImageIO.write(
-                    renderFrame(compositor.snapshot(), imgPx = 512, cellPx = 36, gapPx = 6, padPx = 22),
+                    renderFrame(compositor.snapshot(), imgPx = 512, cellPx = 36, gapPx = 6,
+                        padPx = 22, circleBg = true),
                     "png", File(File(dir!!).apply { mkdirs() }, "%s%02d.png".format(type, frame)))
                 frame++
             }
@@ -158,11 +159,16 @@ class GifExportTest {
                 ind++
             }
         }
-        // 黒背景 (レイヤー配列の末尾 = 最背面)
-        layers.append(""",{"ddd":0,"ty":1,"ind":$ind,"ip":0,"op":$totalFrames,"st":0,""" +
+        // 黒い円形の背景 (レイヤー配列の末尾 = 最背面)。
+        // 実機の Glyph エリアと同じく円形で、円の外は透過
+        layers.append(""",{"ddd":0,"ty":4,"ind":$ind,"ip":0,"op":$totalFrames,"st":0,""" +
             """"ks":{"o":{"a":0,"k":100},"r":{"a":0,"k":0},"p":{"a":0,"k":[256,256,0]},""" +
-            """"a":{"a":0,"k":[256,256,0]},"s":{"a":0,"k":[100,100,100]}},""" +
-            """"sw":512,"sh":512,"sc":"#000000"}""")
+            """"a":{"a":0,"k":[0,0,0]},"s":{"a":0,"k":[100,100,100]}},""" +
+            """"shapes":[{"ty":"gr","it":[""" +
+            """{"ty":"el","d":1,"s":{"a":0,"k":[512,512]},"p":{"a":0,"k":[0,0]}},""" +
+            """{"ty":"fl","c":{"a":0,"k":[0,0,0,1]},"o":{"a":0,"k":100},"r":1},""" +
+            """{"ty":"tr","p":{"a":0,"k":[0,0]},"a":{"a":0,"k":[0,0]},""" +
+            """"s":{"a":0,"k":[100,100]},"r":{"a":0,"k":0},"o":{"a":0,"k":100}}]}]}""")
 
         val json = """{"v":"5.7.4","fr":30,"ip":0,"op":$totalFrames,"w":512,"h":512,""" +
             """"nm":"Glyph Hanabi","ddd":0,"assets":[],"layers":[$layers]}"""
@@ -211,7 +217,8 @@ class GifExportTest {
                 if (previewDir != null) {
                     // 512 = 余白 22 + セル 36×13 + 余白 22。すき間は GIF と同比率の 6px
                     ImageIO.write(
-                        renderFrame(levels, imgPx = 512, cellPx = 36, gapPx = 6, padPx = 22),
+                        renderFrame(levels, imgPx = 512, cellPx = 36, gapPx = 6,
+                            padPx = 22, circleBg = true),
                         "png", File(previewDir, "preview%04d.png".format(steps)))
                 }
                 steps++
@@ -238,12 +245,18 @@ class GifExportTest {
         levels: IntArray,
         imgPx: Int = IMG, cellPx: Int = CELL, gapPx: Int = GAP,
         padPx: Int = (IMG - GRID * CELL) / 2,
+        circleBg: Boolean = false,  // true: 実機の Glyph エリア同様、黒い円形 + 外側は透過
     ): BufferedImage {
-        val img = BufferedImage(imgPx, imgPx, BufferedImage.TYPE_INT_RGB)
+        val type = if (circleBg) BufferedImage.TYPE_INT_ARGB else BufferedImage.TYPE_INT_RGB
+        val img = BufferedImage(imgPx, imgPx, type)
         val g = img.createGraphics()
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
         g.color = Color.BLACK
-        g.fillRect(0, 0, imgPx, imgPx)
+        if (circleBg) {
+            g.fillOval(0, 0, imgPx, imgPx)  // 透過キャンバスに黒円だけ塗る
+        } else {
+            g.fillRect(0, 0, imgPx, imgPx)
+        }
 
         val half = (cellPx - gapPx) / 2  // 四角セルの半辺 (すき間 gapPx を空ける)
         forEachLed(levels, cellPx, padPx) { cx, cy, v ->
