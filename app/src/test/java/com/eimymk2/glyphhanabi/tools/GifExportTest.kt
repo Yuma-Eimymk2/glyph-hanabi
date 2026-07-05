@@ -33,6 +33,7 @@ class GifExportTest {
     companion object {
         private const val GRID = 13
         private const val CELL = 26           // 1 セルのピクセルサイズ
+        private const val GAP = 4             // セル間のすき間 (実機同様せまく)
         private const val PAD = 18            // 外周の余白
         private const val IMG = GRID * CELL + PAD * 2
         private const val DELAY_CS = 8        // フレーム間隔 8/100 秒 = 実機と同じ 80ms
@@ -103,7 +104,10 @@ class GifExportTest {
         director.history.forEach { println("%5.1fs  %s".format(it.at, it.type)) }
     }
 
-    /** 13×13 明度フレーム (0-255) を「黒地 + 丸 LED」の画像にする */
+    /**
+     * 13×13 明度フレーム (0-255) を画像にする。
+     * 実機の Glyph Matrix に合わせて、セルは四角形・セル間のすき間は狭く描く
+     */
     private fun renderFrame(levels: IntArray): BufferedImage {
         val img = BufferedImage(IMG, IMG, BufferedImage.TYPE_INT_RGB)
         val g = img.createGraphics()
@@ -111,24 +115,11 @@ class GifExportTest {
         g.color = Color.BLACK
         g.fillRect(0, 0, IMG, IMG)
 
-        // 2 パス描画: 先に全 LED のハロー (ぼんやりした光) → 後から芯。
-        // 1 パスだと明るい LED のハローが隣の暗い LED の芯を上書きしてしまう
+        val half = (CELL - GAP) / 2  // 四角セルの半辺 (すき間 GAP px を空ける)
         forEachLed(levels) { cx, cy, v ->
-            if (v > 0) {
-                val r = 8 + 5 * v / 255  // 明るいほどハローが広がる
-                g.color = Color(v * 30 / 100, v * 30 / 100, v * 30 / 100)
-                g.fillOval(cx - r, cy - r, r * 2, r * 2)
-            }
-        }
-        forEachLed(levels) { cx, cy, v ->
-            if (v > 0) {
-                g.color = Color(v, v, v)
-                g.fillOval(cx - 6, cy - 6, 12, 12)
-            } else {
-                // 消灯 LED もうっすら見せて「盤面」の存在を伝える
-                g.color = Color(15, 15, 15)
-                g.fillOval(cx - 5, cy - 5, 10, 10)
-            }
+            // 消灯セルもうっすら見せて「盤面」の存在を伝える
+            g.color = if (v > 0) Color(v, v, v) else Color(15, 15, 15)
+            g.fillRect(cx - half, cy - half, half * 2, half * 2)
         }
         g.dispose()
         return img
