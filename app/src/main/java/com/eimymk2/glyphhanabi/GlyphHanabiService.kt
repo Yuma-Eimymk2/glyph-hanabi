@@ -4,7 +4,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.os.BatteryManager
 import android.os.PowerManager
 import android.os.SystemClock
 import android.util.Log
@@ -126,17 +125,11 @@ class GlyphHanabiService : GlyphMatrixService("Glyph-Hanabi") {
     private fun startShow(context: Context, glyphMatrixManager: GlyphMatrixManager) {
         val scope = showScope ?: return
         showJob = scope.launch {
-            if (isCharging(context)) {
-                // SPEC: 充電中は完全停止
-                Log.d(TAG, "charging -> stay dark")
-                pushFrame(glyphMatrixManager, IntArray(GlyphRenderer.OUTPUT_FRAME_SIZE))
-                return@launch
-            }
             // ショー中だけ CPU を起こしておく (Doze で delay() が遅れて
             // 花火がかくかくする対策)。タイムアウト付きなので release 漏れでも安全
             acquireWakeLock(context)
             try {
-                runShow(context, glyphMatrixManager)
+                runShow(glyphMatrixManager)
             } finally {
                 releaseWakeLock()
             }
@@ -168,7 +161,7 @@ class GlyphHanabiService : GlyphMatrixService("Glyph-Hanabi") {
         wakeLock = null
     }
 
-    private suspend fun runShow(context: Context, gmm: GlyphMatrixManager) {
+    private suspend fun runShow(gmm: GlyphMatrixManager) {
         val engine = HanabiEngine()
         val director = ShowDirector(engine)
         // 満開時は LED 全開 (Phase 4 実機調整: 暫定 153 では暗かった)。
@@ -197,12 +190,6 @@ class GlyphHanabiService : GlyphMatrixService("Glyph-Hanabi") {
                 if (TEST_SINGLE_BOTAN) engine.isIdle
                 else director.isFinished && engine.isIdle
             if (showDone) break
-
-            // 充電が始まったら完全停止 (2 秒ごとにチェック)
-            if (frame % CHARGE_CHECK_INTERVAL_FRAMES == 0 && isCharging(context)) {
-                Log.d(TAG, "charging started -> abort show")
-                break
-            }
 
             frame++
             anchorMs = waitForFrame(anchorMs, frame)
@@ -263,19 +250,11 @@ class GlyphHanabiService : GlyphMatrixService("Glyph-Hanabi") {
         return anchorMs
     }
 
-    private fun isCharging(context: Context): Boolean {
-        val bm = context.getSystemService(BatteryManager::class.java)
-        return bm?.isCharging == true
-    }
-
     private companion object {
         private const val TAG = "GlyphHanabiService"
 
         /** 更新間隔 80ms = 12.5 FPS (エンジンの dt=0.08s と対応) */
         private const val FRAME_INTERVAL_MS = 80L
-
-        /** 充電開始チェックの間隔 (25 フレーム = 2 秒) */
-        private const val CHARGE_CHECK_INTERVAL_FRAMES = 25
 
         /** 終演後のフェードアウト: 0.58^12 ≈ 0.001 で事実上消灯 */
         private const val FADE_OUT_FRAMES = 12

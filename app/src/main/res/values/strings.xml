@@ -9,7 +9,7 @@
     <string name="main_title">Glyph Hanabi 🎆</string>
     <string name="main_tagline">Japanese fireworks on your Glyph Matrix</string>
     <string name="main_howto_title">How to use</string>
-    <string name="main_howto_body">1. Open Settings → Glyph Interface → Glyph Toys\n2. Enable “Glyph Hanabi”\n3. Press the power button (or flip the phone face down) — the show begins the moment the screen goes dark\n\nThat’s all. There is nothing to configure, and you can close this screen now.</string>
+    <string name="main_howto_body">1. Open Settings → Glyph Interface → Glyph Toys\n2. Enable “Glyph Hanabi”\n3. Press the power button — the show begins the moment the screen goes dark\n\nThat’s all. There is nothing to configure, and you can close this screen now.</string>
     <string name="main_notes_title">Good to know</string>
-    <string name="main_notes_body">• Each show lasts about one minute, ending with a Niagara finale\n• Waking the screen ends the show; the next screen-off starts a new one\n• While charging, the matrix stays dark on purpose — hanabi belongs to the night, not the charger\n• Best enjoyed in a dim room, like real fireworks</string>
+    <string name="main_notes_body">• Each show lasts about one minute, ending with a Niagara finale\n• Waking the screen ends the show; the next screen-off starts a new one\n• Best enjoyed in a dim room, like real fireworks</string>
 </resources>

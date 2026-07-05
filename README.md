@@ -31,8 +31,6 @@ The structure of a real Japanese fireworks festival, on a 13×13 board.
   tuned shell by shell against a browser simulator and on the actual device.
 - **You control the timing** — the show starts the moment the screen goes dark:
   just press the power button. Waking the screen ends it.
-- **Rests while charging** — the matrix stays dark on the charger.
-  Hanabi belongs to the night, not the charging cable.
 
 ## Usage
 
@@ -49,7 +47,6 @@ The structure of a real Japanese fireworks festival, on a 13×13 board.
 - Each show runs for about a minute and ends on its own. Every screen-off starts
   one show (this includes the automatic screen timeout); waking the screen stops
   it immediately.
-- While charging, the matrix intentionally stays dark.
 - Like real hanabi, it looks best in a dim room. The Glyph LEDs are subtle in daylight.
 
 ## Requirements
@@ -76,8 +73,8 @@ test suite without a device. The demo GIF above is rendered by the engine too
 
 The release APK has been scanned by multiple security services:
 
-- **VirusTotal** (0 detections): https://www.virustotal.com/gui/file/0c023e9fb42c93881cd85d218bb20d6deba38f9a3d6f8c03992209df8325bc74
-- **Koodous**: https://koodous.com/apks/0c023e9fb42c93881cd85d218bb20d6deba38f9a3d6f8c03992209df8325bc74/general-information
+- **VirusTotal** (0 detections): https://www.virustotal.com/gui/file/ac4553405a52bc4a5327eab713e2a1b015b904c1ec298546af1b6425369567a2
+- **Koodous**: https://koodous.com/apks/ac4553405a52bc4a5327eab713e2a1b015b904c1ec298546af1b6425369567a2/general-information
 
 ## License
 
