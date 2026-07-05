@@ -6,6 +6,15 @@
 
 Sister app of [Glyph Life](https://github.com/Yuma-Eimymk2/glyph-life).
 
+<p align="center">
+  <img src="docs/demo.gif" width="360" alt="Glyph Hanabi demo — a full one-minute show on the 13×13 matrix">
+</p>
+
+<p align="center"><i>
+The full show, rendered frame-by-frame by the same engine that drives the real LEDs.<br>
+実機の LED を駆動しているのと同じエンジンで 1 フレームずつ描画したフルショーです。
+</i></p>
+
 ## Concept / コンセプト
 
 > *"A one-minute hanabi festival in the palm of your hand."*
@@ -85,7 +94,8 @@ included due to Nothing's redistribution terms. To build Glyph Hanabi yourself:
 
 Note: a Phone (4a) Pro is required to actually see the output.
 The firework engine itself is pure Kotlin — `./gradlew test` runs the whole
-36-test suite without a device.
+test suite without a device. The demo GIF above is rendered by the engine too
+(see `GifExportTest.kt` — set `HANABI_GIF=<output path>` to regenerate it).
 
 このリポジトリにはソースコード一式が含まれていますが、Glyph Matrix SDK のバイナリは
 Nothing の再配布条件により含まれていません。自分でビルドする場合は:
@@ -96,7 +106,9 @@ Nothing の再配布条件により含まれていません。自分でビルド
 4. Android Studio でプロジェクトを開いてビルド
 
 注: 実際の動作確認には Phone (4a) Pro が必要です。
-花火エンジン自体は純 Kotlin なので、`./gradlew test` で全 36 テストが端末なしで走ります。
+花火エンジン自体は純 Kotlin なので、`./gradlew test` で全テストが端末なしで走ります。
+冒頭のデモ GIF もこのエンジンで描画したものです (`GifExportTest.kt` 参照。
+環境変数 `HANABI_GIF=<出力パス>` を設定すると再生成できます)。
 
 ## Security / セキュリティ
 
